@@ -1,95 +1,113 @@
+# Switch 游戏服务器 (中文版)
+
 <p align="center">
   <img src="www/public/sgs-icon.png" alt="SGS Logo" width="128">
 </p>
 
-# Switch Games Server
+Switch 游戏服务器（SGS）是一个基于 Laravel 框架的轻量级应用，通过网络共享你的 Nintendo Switch 游戏文件，让 Tinfoil、DBI 等自制程序能够直接访问和安装游戏。
 
-Switch Games Server is a lightweight Laravel-based application that exposes your Nintendo Switch game files over the network, making them accessible to homebrew applications like **Tinfoil** and **DBI**.
+使用 SGS，你无需将 Switch 连接到电脑，即可通过无线网络安装游戏。设置完成后，同一网络下的所有 Nintendo Switch 设备都可以直接从服务器下载和安装游戏。
 
-With SGS, you can install games wirelessly without connecting your Switch to a computer. Once set up, all Nintendo Switch devices on your network can access and install games directly from the server.
+## 功能特性
 
-## Features
+- 🎮 **网络文件共享** - 通过网络共享 Switch 游戏文件（.nsz、.nsp、.xci、.xcz）
+- 📱 **Tinfoil 支持** - 为 Tinfoil 应用提供 JSON 格式的游戏索引
+- 🗂️ **DBI 支持** - 为 DBI 应用提供 Apache 风格的目录列表
+- 📁 **文件管理** - 网页端管理游戏文件（上传、下载、删除、重命名）
+- 🐳 **Docker 部署** - 使用 Docker Compose 完全容器化部署
+- ⚡ **自动配置** - 首次运行时自动安装依赖
 
-- 🎮 **Network File Sharing** - Share your Switch game files (.nsz, .nsp, .xci, .xcz) over the network
-- 📱 **Tinfoil Support** - JSON-based file index for Tinfoil app
-- 🗂️ **DBI Support** - Apache-style directory listing for DBI app  
-- 🐳 **Docker Ready** - Fully containerized with Docker Compose
-- ⚡ **Auto Setup** - Automatic dependency installation on first run
+## 快速开始
 
-## Quick Start
-
-### Prerequisites
+### 环境要求
 
 - [Docker](https://docs.docker.com/get-docker/)
 - [Docker Compose](https://docs.docker.com/compose/install/)
 - Git
 
-### Installation
+### 安装步骤
 
-1. **Clone the repository**
+1. **克隆仓库**
    ```bash
-   git clone https://github.com/notf0und/SGS
+   git clone https://github.com/stevenliuit/SGS
    cd SGS
    ```
 
-2. **Start the application**
+2. **启动应用**
    ```bash
    docker-compose up -d
    ```
 
-   That's it! The application will automatically:
-   - Install Composer dependencies
-   - Install and build npm assets
-   - Create storage symlinks
-   - Start the web server
+   应用会自动完成以下操作：
+   - 安装 Composer 依赖
+   - 安装并构建前端资源
+   - 创建存储目录软链接
+   - 启动 Web 服务器
 
-3. **Access the application**
-   
-   Open your browser and navigate to:
+3. **访问应用**
+
+   在浏览器中打开：
    ```
    http://localhost:8030
    ```
 
-   Or replace `localhost` with your server's IP address.
+   如果从其他设备访问，请将 `localhost` 替换为服务器 IP 地址。
 
-## Adding Games
+## 添加游戏
 
-Place your Nintendo Switch game files in the `games/` directory. Supported formats:
-- `.nsz` - Compressed NSP
-- `.nsp` - Nintendo Submission Package
-- `.xci` - NX Card Image
-- `.xcz` - Compressed XCI
+将你的 Nintendo Switch 游戏文件放入 `games/` 目录。支持的文件格式：
 
-## Client Setup
+- `.nsz` - 压缩版 NSP
+- `.nsp` - Nintendo 提交包
+- `.xci` - NX 卡镜像
+- `.xcz` - 压缩版 XCI
 
-### Tinfoil Setup
+## 客户端配置
 
-See [www/docs/TINFOIL.md](www/docs/TINFOIL.md) for detailed instructions or visit `http://YOUR_SERVER_IP:8030/docs/TINFOIL` in your browser.
+### Tinfoil 配置教程
 
-### DBI Setup
+详细说明请访问 `http://YOUR_SERVER_IP:8030/docs/TINFOIL` 或查看 [www/docs/TINFOIL.md](www/docs/TINFOIL.md)。
 
-See [www/docs/DBI.md](www/docs/DBI.md) for detailed instructions or visit `http://YOUR_SERVER_IP:8030/docs/DBI` in your browser.
+### DBI 配置教程
 
-## API Endpoints
+详细说明请访问 `http://YOUR_SERVER_IP:8030/docs/DBI` 或查看 [www/docs/DBI.md](www/docs/DBI.md)。
 
-- **Tinfoil Index**: `http://YOUR_SERVER_IP:8030/api/tinfoil`
-- **DBI Browser**: `http://YOUR_SERVER_IP:8030/api/dbi`
-- **Generic (work for Tinfoil and DBI)**: `http://YOUR_SERVER_IP:8030`
+## API 接口
 
-## Legal Disclaimer
+- **Tinfoil 接口**: `http://YOUR_SERVER_IP:8030/api/tinfoil`
+- **DBI 接口**: `http://YOUR_SERVER_IP:8030/api/dbi`
+- **通用接口**（适用于 Tinfoil 和 DBI）: `http://YOUR_SERVER_IP:8030`
 
-⚠️ **Important**: This software is intended for personal use only. It is designed to help you manage and access your legally owned game backups over your local network.
+## 文件管理
 
-- Only use this software with games you legally own
-- Piracy is illegal and violates copyright laws
-- This software is provided for educational and backup purposes only
-- The developer do not condone or support piracy in any form
-- Users are solely responsible for ensuring their use complies with local laws
+SGS 提供网页端文件管理功能，方便你管理游戏文件：
 
-By using this software, you agree to use it in accordance with all applicable laws and regulations.
+访问地址：`http://YOUR_SERVER_IP:8030/manage`
 
-## License
+功能包括：
+- 📤 **上传文件** - 支持拖放或点击上传游戏文件
+- 📦 **上传文件夹** - 支持上传 ZIP 包自动解压
+- ⬇️ **下载文件** - 直接下载单个游戏文件
+- 📥 **下载文件夹** - 将整个游戏文件夹打包为 ZIP 下载
+- 🗑️ **删除** - 支持文件和文件夹删除（带确认提示）
+- ✏️ **重命名** - 支持文件和文件夹重命名
+- 📁 **新建文件夹** - 在当前目录创建新文件夹
+- 🚀 **引导功能** - 首次使用可点击"功能引导"查看使用教程
 
-This work is licensed under [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/)
+## 法律声明
+
+⚠️ **重要提示**：本软件仅供个人使用。它旨在帮助你管理和访问通过合法途径备份的游戏文件。
+
+- 仅使用你合法拥有的游戏配合本软件
+- 盗版是违法行为，侵犯著作权
+- 本软件仅供学习和备份目的
+- 开发者不支持任何形式的盗版行为
+- 用户有责任确保其使用符合当地法律法规
+
+使用本软件即表示你同意遵守所有适用法律和法规。
+
+## 许可证
+
+本作品采用 [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/) 许可证。
 
 ![CC](https://mirrors.creativecommons.org/presskit/icons/cc.svg)![BY](https://mirrors.creativecommons.org/presskit/icons/by.svg)![NC](https://mirrors.creativecommons.org/presskit/icons/nc.svg)![SA](https://mirrors.creativecommons.org/presskit/icons/sa.svg)
