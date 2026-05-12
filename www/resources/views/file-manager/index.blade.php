@@ -6,7 +6,6 @@
     <title>游戏文件管理 - Switch 游戏服务器</title>
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/intro.js@7.2.0/minified/introjs.min.css" />
     <style>
         * { box-sizing: border-box; }
         body { font-family: 'Figtree', sans-serif; margin: 0; padding: 20px; background: #1a1a2e; color: #e0e0e0; min-height: 100vh; }
@@ -60,7 +59,7 @@
         .toast.error { background: #dc3545; color: white; }
         .toast.active { display: block; }
         .loading { opacity: 0.5; pointer-events: none; }
-        .introjs-tooltip { font-family: 'Figtree', sans-serif !important; }
+
         .folder-input { width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #3a3a5c; background: #1a1a2e; color: #e0e0e0; font-size: 14px; margin-bottom: 10px; }
         .checkbox-wrapper { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
         .checkbox-wrapper input[type="checkbox"] { width: 18px; height: 18px; cursor: pointer; }
@@ -76,7 +75,6 @@
         <div class="header">
             <h1>📁 游戏文件管理</h1>
             <div class="header-actions">
-                <button class="btn btn-secondary" onclick="startTour()">🚀 功能引导</button>
                 <a href="/" class="btn btn-secondary">← 返回首页</a>
             </div>
         </div>
@@ -85,7 +83,7 @@
             <a href="#" onclick="navigateTo(''); return false;">游戏目录</a>
         </div>
 
-        <div class="upload-zone" id="uploadZone" data-step="1" data-intro="拖放文件或点击这里上传游戏文件到当前目录">
+        <div class="upload-zone" id="uploadZone">
             <input type="file" id="fileInput" multiple>
             <div class="upload-text">📤 拖放文件到此处或点击选择（支持多选）</div>
             <div style="font-size: 12px; color: #666; text-align: center;">
@@ -169,7 +167,7 @@
     <div class="toast" id="toast"></div>
 
     
-    <script src="https://cdn.jsdelivr.net/npm/intro.js@7.2.0/intro.min.js"></script>
+
     <script>
         let currentPath = '';
         let tourStarted = false;
@@ -202,10 +200,8 @@
             const mtime = new Date(item.mtime * 1000).toLocaleString('zh-CN');
             const size = type === 'file' ? formatSize(item.size) : '-';
             const icon = type === 'folder' ? '📁' : getFileIcon(item.name);
-            const dataStep = type === 'folder' ? '3' : '4';
-
             return `
-                <div class="file-card ${type}" data-step="${dataStep}">
+                <div class="file-card ${type}">
                     <div class="file-info">
                         <div class="file-icon">${icon}</div>
                         <div class="file-details">
@@ -534,48 +530,6 @@ function downloadFile(path) {
             const toast = document.getElementById('toast');
             toast.textContent = message;
             toast.className = `toast ${type} active`;
-            setTimeout(() => toast.classList.remove('active'), 3000);
-        }
-
-        // Guided Tour
-        function startTour() {
-            const intro = introJs();
-            intro.setOptions({
-                steps: [
-                    {
-                        element: '#uploadZone',
-                        intro: '拖放文件到此处或点击选择文件上传。你也可以上传整个文件夹（作为 ZIP 包）。',
-                        position: 'bottom'
-                    },
-                    {
-                        element: '.breadcrumb',
-                        intro: '使用面包屑导航在文件夹之间切换，点击任意层级可以快速跳转。',
-                        position: 'bottom'
-                    },
-                    {
-                        element: '.file-card.folder',
-                        intro: '游戏文件夹：点击"打开"进入文件夹，"下载"可以将整个文件夹打包为 ZIP 下载。',
-                        position: 'top'
-                    },
-                    {
-                        element: '.file-card.file',
-                        intro: '游戏文件：点击"下载"可以直接下载单个游戏文件。',
-                        position: 'top'
-                    },
-                    {
-                        element: '.btn.btn-sm.btn-secondary',
-                        intro: '新建文件夹可以帮助你整理游戏。使用"重命名"和"删除"按钮管理文件和文件夹。',
-                        position: 'top'
-                    }
-                ],
-                showBullets: true,
-                showProgress: true,
-                nextLabel: '下一步 →',
-                prevLabel: '← 上一步',
-                doneLabel: '完成'
-            });
-            intro.start();
-        }
 
         // Initial load
         loadFiles('');
