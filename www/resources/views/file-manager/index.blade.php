@@ -530,6 +530,7 @@ function downloadFile(path) {
             const toast = document.getElementById('toast');
             toast.textContent = message;
             toast.className = `toast ${type} active`;
+        }
 
         // Initial load
         loadFiles('');
