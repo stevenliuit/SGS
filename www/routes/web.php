@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\FileManagerController;
 use App\Http\Middleware\EnsureIsDbiClient;
 use App\Http\Middleware\EnsureIsTinfoilClient;
 use Illuminate\Support\Facades\Route;
@@ -8,6 +9,8 @@ Route::view('/', 'welcome')->middleware([
     EnsureIsDbiClient::class,
     EnsureIsTinfoilClient::class,
 ]);
+
+Route::get('/manage', [FileManagerController::class, 'index'])->name('manage');
 
 Route::get('/docs/{page}', function ($page) {
     $allowedPages = ['TINFOIL', 'DBI'];

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<html lang="zh-CN">
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -21,10 +21,10 @@
                     <main class="mt-0">
                         <div class="text-center mb-12">
                             <h1 class="text-4xl font-bold tracking-tight text-[#FF2D20] dark:text-[#FF2D20] sm:text-6xl">
-                                Switch Games Server
+                                Switch 游戏服务器
                             </h1>
                             <p class="mt-6 text-lg leading-8 text-gray-600 dark:text-gray-400">
-                                Share your Nintendo Switch games over the network with Tinfoil and DBI
+                                通过网络与 Tinfoil 和 DBI 共享你的 Nintendo Switch 游戏文件
                             </p>
                         </div>
 
@@ -42,9 +42,9 @@
                                         </div>
 
                                         <div class="pt-3 sm:pt-5 lg:pt-0">
-                                            <h2 class="text-xl font-semibold text-black dark:text-white">Tinfoil Setup</h2>
+                                            <h2 class="text-xl font-semibold text-black dark:text-white">Tinfoil 配置教程</h2>
                                             <p class="mt-4 text-sm/relaxed">
-                                                Learn how to connect your Nintendo Switch running Tinfoil to this server. Step-by-step instructions to get started.
+                                                了解如何将运行 Tinfoil 的 Nintendo Switch 连接到本服务器。逐步说明带你入门。
                                             </p>
                                         </div>
                                     </div>
@@ -68,9 +68,9 @@
                                         </div>
 
                                         <div class="pt-3 sm:pt-5 lg:pt-0">
-                                            <h2 class="text-xl font-semibold text-black dark:text-white">DBI Setup</h2>
+                                            <h2 class="text-xl font-semibold text-black dark:text-white">DBI 配置教程</h2>
                                             <p class="mt-4 text-sm/relaxed">
-                                                Configure DBI on your Nintendo Switch to browse and install games from this server using directory listing.
+                                                配置 DBI 以通过目录列表功能浏览并安装本服务器上的游戏。
                                             </p>
                                         </div>
                                     </div>
@@ -89,9 +89,9 @@
                                 </div>
 
                                 <div class="pt-3 sm:pt-5">
-                                    <h2 class="text-xl font-semibold text-black dark:text-white">API Endpoints</h2>
+                                    <h2 class="text-xl font-semibold text-black dark:text-white">API 接口</h2>
                                     <p class="mt-4 text-sm/relaxed">
-                                        Direct access to the API endpoints:
+                                        直接访问 API 接口：
                                     </p>
 
                                     <div class="mt-4 space-y-2">
@@ -108,7 +108,7 @@
                                             </code>
                                         </div>
                                         <div class="text-sm">
-                                            <strong class="text-black dark:text-white">Generic (work for Tinfoil and DBI):</strong>
+                                            <strong class="text-black dark:text-white">通用（适用于 Tinfoil 和 DBI）:</strong>
                                             <code class="ml-2 rounded bg-gray-100 px-2 py-1 text-xs dark:bg-zinc-800">
                                                 {{ url('/') }}
                                             </code>
@@ -116,6 +116,27 @@
                                     </div>
                                 </div>
                             </div>
+
+                            <a
+                                href="{{ route('manage') }}"
+                                class="flex items-start gap-4 rounded-lg bg-white p-6 shadow-[0px_14px_34px_0px_rgba(0,0,0,0.08)] ring-1 ring-white/[0.05] transition duration-300 hover:text-black/70 hover:ring-black/20 focus:outline-none focus-visible:ring-[#FF2D20] lg:pb-10 dark:bg-zinc-900 dark:ring-zinc-800 dark:hover:text-white/70 dark:hover:ring-zinc-700 dark:focus-visible:ring-[#FF2D20]"
+                            >
+                                <div class="flex size-12 shrink-0 items-center justify-center rounded-full bg-[#FF2D20]/10 sm:size-16">
+                                    <svg class="size-5 sm:size-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5">
+                                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" d="M2.25 12.75V12A2.25 2.25 0 0 1 4.5 9.75h15A2.25 2.25 0 0 1 21.75 12v.75m-8.69-6.44-2.12-2.12a1.5 1.5 0 0 0-1.061-.44H4.5A2.25 2.25 0 0 0 2.25 6v12a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9a2.25 2.25 0 0 0-2.25-2.25h-5.379a1.5 1.5 0 0 1-1.06-.44Z" />
+                                    </svg>
+                                </div>
+
+                                <div class="pt-3 sm:pt-5">
+                                    <h2 class="text-xl font-semibold text-black dark:text-white">📁 管理游戏目录</h2>
+                                    <p class="mt-4 text-sm/relaxed">
+                                        上传、下载、删除和整理你的游戏文件。支持文件和文件夹管理。
+                                    </p>
+                                    <span class="mt-4 inline-flex items-center text-sm font-semibold text-[#FF2D20]">
+                                        打开文件管理 →
+                                    </span>
+                                </div>
+                            </a>
 
                             <div class="flex items-start gap-4 rounded-lg bg-white p-6 shadow-[0px_14px_34px_0px_rgba(0,0,0,0.08)] ring-1 ring-white/[0.05] lg:pb-10 dark:bg-zinc-900 dark:ring-zinc-800">
                                 <div class="flex size-12 shrink-0 items-center justify-center rounded-full bg-[#FF2D20]/10 sm:size-16">
@@ -125,9 +146,9 @@
                                 </div>
 
                                 <div class="pt-3 sm:pt-5">
-                                    <h2 class="text-xl font-semibold text-black dark:text-white">GitHub Repository</h2>
+                                    <h2 class="text-xl font-semibold text-black dark:text-white">开源项目</h2>
                                     <p class="mt-4 text-sm/relaxed">
-                                        View the source code, report issues, or contribute to the project on GitHub.
+                                        在 GitHub 上查看源代码、报告问题或参与项目贡献。
                                     </p>
 
                                     <a
@@ -135,7 +156,7 @@
                                         target="_blank"
                                         class="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-[#FF2D20] hover:text-[#FF2D20]/80"
                                     >
-                                        View on GitHub
+                                        在 GitHub 上查看
                                         <svg class="size-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5">
                                             <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 0 0 3 8.25v10.5A2.25 2.25 0 0 0 5.25 21h10.5A2.25 2.25 0 0 0 18 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
                                         </svg>
