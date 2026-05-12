@@ -37,7 +37,7 @@
         .file-name { font-weight: 600; word-break: break-all; margin-bottom: 4px; }
         .file-meta { font-size: 12px; color: #888; }
         .file-actions { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 10px; }
-        .upload-zone { border: 2px dashed #3a3a5c; border-radius: 8px; padding: 40px; text-align: center; margin-bottom: 20px; transition: all 0.2s; cursor: pointer; }
+        .upload-zone { border: 2px dashed #3a3a5c; border-radius: 8px; padding: 20px; text-align: center; margin-bottom: 20px; transition: all 0.2s; cursor: pointer; }
         .upload-zone:hover, .upload-zone.dragover { border-color: #FF2D20; background: rgba(255, 45, 32, 0.1); }
         .upload-zone input { display: none; }
         .upload-text { color: #888; margin-bottom: 10px; }
@@ -87,11 +87,11 @@
 
         <div class="upload-zone" id="uploadZone" data-step="1" data-intro="拖放文件或点击这里上传游戏文件到当前目录">
             <input type="file" id="fileInput" multiple accept=".nsp,.xci,.nsz,.xcz,*">
-            <input type="file" id="folderInput" multiple webkitdirectory accept=".zip">
+            <input type="file" id="folderInput" accept=".zip">
             <div class="upload-text">📤 拖放文件到此处或点击选择</div>
             <div style="font-size: 12px; color: #666;">
                 <button class="btn btn-sm btn-primary" onclick="document.getElementById('fileInput').click()">选择文件</button>
-                <button class="btn btn-sm btn-secondary" onclick="document.getElementById('folderInput').click()">选择文件夹</button>
+                <button class="btn btn-sm btn-secondary" onclick="document.getElementById('folderInput').click()">选择 ZIP 文件</button>
             </div>
         </div>
 
@@ -163,6 +163,9 @@
             </div>
         </div>
     </div>
+
+    <!-- Upload Progress Modal -->
+    <div class="modal" id="uploadProgressModal"></div>
 
     <!-- Toast Notification -->
     <div class="toast" id="toast"></div>
@@ -269,15 +272,22 @@
         const fileInput = document.getElementById('fileInput');
         const folderInput = document.getElementById('folderInput');
 
-        uploadZone.addEventListener('click', () => fileInput.click());
+        uploadZone.addEventListener('click', (e) => {
+            // Don't trigger file picker if clicking on a button inside the zone
+            if (e.target.tagName === 'BUTTON' || e.target.closest('button')) return;
+            fileInput.click();
+        });
 
         uploadZone.addEventListener('dragover', (e) => {
             e.preventDefault();
             uploadZone.classList.add('dragover');
         });
 
-        uploadZone.addEventListener('dragleave', () => {
-            uploadZone.classList.remove('dragover');
+        uploadZone.addEventListener('dragleave', (e) => {
+            // Only remove dragover if leaving the zone entirely
+            if (!uploadZone.contains(e.relatedTarget)) {
+                uploadZone.classList.remove('dragover');
+            }
         });
 
         uploadZone.addEventListener('drop', (e) => {
@@ -294,29 +304,145 @@
             handleFiles(folderInput.files, true);
         });
 
+        // Upload progress state
+        let uploadProgress = null;
+
         async function handleFiles(files, isFolder = false) {
             if (files.length === 0) return;
 
-            const formData = new FormData();
-            for (let i = 0; i < files.length; i++) {
-                formData.append('files[]', files[i]);
+            let formData;
+
+            if (isFolder) {
+                // For folder upload: pack files into a zip using JSZip, then upload
+                const totalSize = Array.from(files).reduce((sum, f) => sum + f.size, 0);
+                showUploadProgressModal(files.length, totalSize);
+
+                try {
+                    const zip = new JSZip();
+                    for (let i = 0; i < files.length; i++) {
+                        const file = files[i];
+                        // Preserve folder structure from webkitRelativePath
+                        const relativePath = file.webkitRelativePath || file.name;
+                        zip.file(relativePath, file);
+                    }
+
+                    updateUploadProgress(0, 0, totalSize, '正在打包...');
+
+                    const zipBlob = await zip.generateAsync(
+                        { type: 'blob', compression: 'DEFLATE', compressionOptions: { level: 1 } },
+                        (metadata) => {
+                            const percent = Math.round(metadata.percent);
+                            const processed = Math.round(totalSize * metadata.percent / 100);
+                            updateUploadProgress(percent, processed, totalSize, '正在打包: ' + percent + '%');
+                        }
+                    );
+
+                    formData = new FormData();
+                    formData.append('folder', zipBlob, 'folder.zip');
+                    formData.append('path', currentPath);
+                } catch (err) {
+                    hideUploadProgressModal();
+                    showToast('打包失败: ' + err.message, 'error');
+                    return;
+                }
+            } else {
+                // File upload: send files directly
+                const totalSize = Array.from(files).reduce((sum, f) => sum + f.size, 0);
+                showUploadProgressModal(files.length, totalSize);
+
+                formData = new FormData();
+                for (let i = 0; i < files.length; i++) {
+                    formData.append('files[]', files[i]);
+                }
+                formData.append('path', currentPath);
             }
-            formData.append('path', currentPath);
 
             const endpoint = isFolder ? '/api/file-manager/api/upload-folder' : '/api/file-manager/api/upload';
 
             try {
-                const resp = await fetch(endpoint, { method: 'POST', body: formData });
-                const data = await resp.json();
-                if (data.success) {
-                    showToast(`上传成功！已上传 ${data.uploaded.length} 个文件`, 'success');
-                    loadFiles(currentPath);
-                } else {
-                    showToast('上传失败: ' + (data.error || '未知错误'), 'error');
-                }
+                const uploaded = await uploadWithProgress(endpoint, formData);
+                hideUploadProgressModal();
+                showToast(`上传成功！已上传 ${uploaded.length} 个文件`, 'success');
+                loadFiles(currentPath);
             } catch (err) {
+                hideUploadProgressModal();
                 showToast('上传失败: ' + err.message, 'error');
             }
+        }
+
+        function uploadWithProgress(url, formData) {
+            return new Promise((resolve, reject) => {
+                const xhr = new XMLHttpRequest();
+
+                xhr.upload.addEventListener('progress', (e) => {
+                    if (e.lengthComputable) {
+                        const percent = Math.round((e.loaded / e.total) * 100);
+                        updateUploadProgress(percent, e.loaded, e.total);
+                    }
+                });
+
+                xhr.addEventListener('load', () => {
+                    if (xhr.status >= 200 && xhr.status < 300) {
+                        try {
+                            const data = JSON.parse(xhr.responseText);
+                            if (data.success) {
+                                resolve(data.uploaded);
+                            } else {
+                                reject(new Error(data.error || '上传失败'));
+                            }
+                        } catch (e) {
+                            reject(new Error('响应解析失败'));
+                        }
+                    } else {
+                        reject(new Error('HTTP ' + xhr.status));
+                    }
+                });
+
+                xhr.addEventListener('error', () => {
+                    reject(new Error('网络错误'));
+                });
+
+                xhr.addEventListener('abort', () => {
+                    reject(new Error('上传已取消'));
+                });
+
+                xhr.open('POST', url);
+                xhr.send(formData);
+            });
+        }
+
+        function showUploadProgressModal(fileCount, totalSize) {
+            const modal = document.getElementById('uploadProgressModal');
+            modal.innerHTML = `
+                <div class="modal-content" style="min-width: 350px;">
+                    <div class="modal-header">
+                        <h3>📤 上传中...</h3>
+                    </div>
+                    <div id="progressInfo" style="color: #ccc; margin-bottom: 10px; font-size: 14px;">
+                        正在上传 ${fileCount} 个文件
+                    </div>
+                    <div style="background: #1a1a2e; border-radius: 6px; height: 24px; overflow: hidden;">
+                        <div id="progressBar" style="background: linear-gradient(90deg, #FF2D20, #ff6b6b); height: 100%; width: 0%; transition: width 0.2s; border-radius: 6px;"></div>
+                    </div>
+                    <div id="progressText" style="color: #888; font-size: 12px; margin-top: 8px; text-align: center;">0%</div>
+                </div>
+            `;
+            modal.classList.add('active');
+            uploadProgress = { fileCount, totalSize, loaded: 0 };
+        }
+
+        function updateUploadProgress(percent, loaded, total, statusText) {
+            const bar = document.getElementById('progressBar');
+            const text = document.getElementById('progressText');
+            const info = document.getElementById('progressInfo');
+            if (bar) bar.style.width = percent + '%';
+            if (text) text.textContent = (statusText || (percent + '% (' + formatSize(loaded) + ' / ' + formatSize(total) + ')'));
+            if (info && uploadProgress) info.textContent = `正在上传 ${uploadProgress.fileCount} 个文件 (${formatSize(loaded)} / ${formatSize(uploadProgress.totalSize)})`;
+        }
+
+        function hideUploadProgressModal() {
+            document.getElementById('uploadProgressModal').classList.remove('active');
+            uploadProgress = null;
         }
 
         // Download

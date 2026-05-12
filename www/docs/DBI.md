@@ -1,65 +1,65 @@
-# DBI Setup Guide
+# DBI 配置指南
 
-Setup SGS with DBI on your Nintendo Switch.
+通过 DBI 在 Nintendo Switch 上配置使用 SGS。
 
-## Prerequisites
+## 前置要求
 
-- Nintendo Switch with CFW
-- DBI installed
-- SGS server running
-- Same network
+- 已刷 CFW 的 Nintendo Switch
+- 已安装 DBI
+- SGS 服务器正在运行
+- SGS 与 Nintendo Switch 处于同一网络
 
-## Instructions
+## 配置步骤
 
-### 1. Find Server IP
+### 1. 获取服务器 IP
 
-Run `ip addr show` (Linux), `ipconfig` (Windows), or `ifconfig` (macOS) to find your server's IP address.
+在 Linux 上运行 `ip addr show`，Windows 上运行 `ipconfig`，macOS 上运行 `ifconfig` 来查找服务器 IP 地址。
 
-### 2. Create DBI Locations File
+### 2. 创建 DBI 定位文件
 
-On your SD card, create or edit the file `/switch/dbi/dbi.locations`
+在 SD 卡上创建或编辑文件 `/switch/dbi/dbi.locations`
 
-Add the following content:
-
-```ini
-[Location_0]
-Name=Switch Games Server
-Type=ApacheHTTP
-URL=http://YOUR_IP:8030/
-```
-
-**Or** if you prefer the API endpoint:
+添加以下内容：
 
 ```ini
 [Location_0]
-Name=Switch Games Server
+Name=Switch 游戏服务器
 Type=ApacheHTTP
-URL=http://YOUR_IP:8030/api/dbi
+URL=http://你的IP:8030/
 ```
 
-**Note**: If you already have other locations configured, use `[Location_X]` where X is the next available number (e.g., if you have `Location_0` and `Location_1`, use `Location_2`).
+**或者**如果你偏好 API 端点：
 
-### 3. Launch DBI
+```ini
+[Location_0]
+Name=Switch 游戏服务器
+Type=ApacheHTTP
+URL=http://你的IP:8030/api/dbi
+```
 
-Open DBI from your Switch home menu.
+**注意**：如果你已经配置了其他定位点，使用 `[Location_X]`，其中 X 是下一个可用编号（例如，如果你已有 `Location_0` 和 `Location_1`，则使用 `Location_2`）。
 
-### 4. Select Your Server
+### 3. 启动 DBI
 
-Choose "Switch Games Server" from the list.
+从 Switch 主菜单打开 DBI。
 
-### 5. Browse and Install
+### 4. 选择你的服务器
 
-Navigate through folders and install your games!
+从列表中选择「Switch 游戏服务器」。
 
-## Features
+### 5. 浏览并安装
 
-- Apache-style directory listing
-- Folder navigation
-- Supports .nsz, .nsp, .xci, .xcz
+浏览文件夹并安装你的游戏！
 
-## Troubleshooting
+## 功能特点
 
-- **Connection Timeout**: Check network and firewall
-- **Empty Folders**: Verify games in `games/` directory
-- **Install Fails**: Check Switch storage space
-- **Server Not Listed**: Verify the `dbi.locations` file is in the correct location and properly formatted
+- Apache 风格目录列表
+- 文件夹导航
+- 支持 .nsz、.nsp、.xci、.xcz 格式
+
+## 故障排除
+
+- **连接超时**：检查网络和防火墙
+- **文件夹为空**：确认游戏文件在 `games/` 目录中
+- **安装失败**：检查 Switch 存储空间
+- **服务器未列出**：确认 `dbi.locations` 文件位于正确位置且格式正确

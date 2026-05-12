@@ -66,7 +66,7 @@ class FileManagerController extends Controller
         foreach ($request->file('files') as $file) {
             $filename = $file->getClientOriginalName();
             $filePath = $targetPath . '/' . $filename;
-            Storage::putFile($targetPath, $file);
+            Storage::putFileAs($targetPath, $file, $filename);
             $uploaded[] = $filename;
         }
 

@@ -12,6 +12,11 @@ COPY ./www .
 # Remove vendor and node_modules if they exist (to ensure clean install)
 RUN rm -rf vendor node_modules
 
+# Increase PHP memory limit for large file uploads
+RUN sed -i 's/^memory_limit = .*/memory_limit = -1/' /etc/php84/php.ini && \
+    sed -i 's/^upload_max_filesize = .*/upload_max_filesize = 0/' /etc/php84/php.ini && \
+    sed -i 's/^post_max_size = .*/post_max_size = 0/' /etc/php84/php.ini
+
 # Install composer dependencies
 RUN composer install --no-interaction --optimize-autoloader
 
