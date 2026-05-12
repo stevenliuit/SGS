@@ -77,58 +77,6 @@ class FileManagerController extends Controller
     }
 
     /**
-     * Upload folder (as zip archive).
-     */
-    public function uploadFolder(Request $request): JsonResponse
-    {
-        $request->validate([
-            'folder' => 'required|file',
-            'path' => 'nullable|string',
-        ]);
-
-        $path = $request->get('path', '');
-        $targetPath = $path ? self::GAMES_DIRECTORY . '/' . $path : self::GAMES_DIRECTORY;
-
-        if (!Storage::exists($targetPath)) {
-            Storage::makeDirectory($targetPath);
-        }
-
-        $file = $request->file('folder');
-        $filename = $file->getClientOriginalName();
-        $tempPath = storage_path('app/temp_' . time() . '_' . $filename);
-        $file->move(dirname($tempPath), basename($tempPath));
-
-        // Extract zip
-        $zip = new \ZipArchive();
-        if ($zip->open($tempPath) === true) {
-            $extractPath = storage_path('app/' . $targetPath);
-            if (!is_dir($extractPath)) {
-                mkdir($extractPath, 0755, true);
-            }
-            $zip->extractTo($extractPath);
-            $zip->close();
-
-            // Remove .MacOSX and similar unwanted folders
-            $this->removeMacOSX($extractPath);
-
-            $uploaded = [];
-            for ($i = 0; $i < $zip->numFiles; $i++) {
-                $uploaded[] = $zip->getNameIndex($i);
-            }
-        } else {
-            unlink($tempPath);
-            return response()->json(['error' => 'Failed to extract archive'], 400);
-        }
-
-        unlink($tempPath);
-
-        return response()->json([
-            'success' => true,
-            'uploaded' => $uploaded,
-        ]);
-    }
-
-    /**
      * Remove .DS_Store and __MACOSX folders.
      */
     private function removeMacOSX(string $dir): void
@@ -295,11 +243,11 @@ class FileManagerController extends Controller
     public function createFolder(Request $request): JsonResponse
     {
         $request->validate([
-            'path' => 'required|string',
+            'path' => 'nullable|string',
             'name' => 'required|string|max:255',
         ]);
 
-        $parentPath = $request->get('path');
+        $parentPath = $request->get('path', '');
         $folderName = $request->get('name');
 
         if (preg_match('/[\/\\\\:*?"<>|]/', $folderName)) {

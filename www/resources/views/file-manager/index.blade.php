@@ -86,12 +86,10 @@
         </div>
 
         <div class="upload-zone" id="uploadZone" data-step="1" data-intro="拖放文件或点击这里上传游戏文件到当前目录">
-            <input type="file" id="fileInput" multiple accept=".nsp,.xci,.nsz,.xcz,*">
-            <input type="file" id="folderInput" accept=".zip">
-            <div class="upload-text">📤 拖放文件到此处或点击选择</div>
-            <div style="font-size: 12px; color: #666;">
-                <button class="btn btn-sm btn-primary" onclick="document.getElementById('fileInput').click()">选择文件</button>
-                <button class="btn btn-sm btn-secondary" onclick="document.getElementById('folderInput').click()">选择 ZIP 文件</button>
+            <input type="file" id="fileInput" multiple>
+            <div class="upload-text">📤 拖放文件到此处或点击选择（支持多选）</div>
+            <div style="font-size: 12px; color: #666; text-align: center;">
+                <button class="btn btn-sm btn-primary" onclick="document.getElementById('fileInput').click()">📄 选择文件（可多选）</button>
             </div>
         </div>
 
@@ -170,6 +168,7 @@
     <!-- Toast Notification -->
     <div class="toast" id="toast"></div>
 
+    
     <script src="https://cdn.jsdelivr.net/npm/intro.js@7.2.0/intro.min.js"></script>
     <script>
         let currentPath = '';
@@ -219,7 +218,6 @@
                     <div class="file-actions">
                         ${type === 'folder' ? `
                             <button class="btn btn-sm btn-secondary" onclick="navigateTo('${item.path}')">打开</button>
-                            <button class="btn btn-sm btn-secondary" onclick="downloadFolder('${item.path}')">📦 下载</button>
                         ` : `
                             <button class="btn btn-sm btn-primary" onclick="downloadFile('${item.path}')">⬇️ 下载</button>
                         `}
@@ -270,10 +268,9 @@
         // File Upload
         const uploadZone = document.getElementById('uploadZone');
         const fileInput = document.getElementById('fileInput');
-        const folderInput = document.getElementById('folderInput');
 
+        // Zone click triggers file picker
         uploadZone.addEventListener('click', (e) => {
-            // Don't trigger file picker if clicking on a button inside the zone
             if (e.target.tagName === 'BUTTON' || e.target.closest('button')) return;
             fileInput.click();
         });
@@ -297,70 +294,29 @@
         });
 
         fileInput.addEventListener('change', () => {
-            handleFiles(fileInput.files);
-        });
-
-        folderInput.addEventListener('change', () => {
-            handleFiles(folderInput.files, true);
+            if (fileInput.files.length > 0) {
+                handleFiles(fileInput.files);
+                fileInput.value = '';
+            }
         });
 
         // Upload progress state
         let uploadProgress = null;
 
-        async function handleFiles(files, isFolder = false) {
+        async function handleFiles(files) {
             if (files.length === 0) return;
 
-            let formData;
+            const totalSize = Array.from(files).reduce((sum, f) => sum + f.size, 0);
+            showUploadProgressModal(files.length, totalSize);
 
-            if (isFolder) {
-                // For folder upload: pack files into a zip using JSZip, then upload
-                const totalSize = Array.from(files).reduce((sum, f) => sum + f.size, 0);
-                showUploadProgressModal(files.length, totalSize);
-
-                try {
-                    const zip = new JSZip();
-                    for (let i = 0; i < files.length; i++) {
-                        const file = files[i];
-                        // Preserve folder structure from webkitRelativePath
-                        const relativePath = file.webkitRelativePath || file.name;
-                        zip.file(relativePath, file);
-                    }
-
-                    updateUploadProgress(0, 0, totalSize, '正在打包...');
-
-                    const zipBlob = await zip.generateAsync(
-                        { type: 'blob', compression: 'DEFLATE', compressionOptions: { level: 1 } },
-                        (metadata) => {
-                            const percent = Math.round(metadata.percent);
-                            const processed = Math.round(totalSize * metadata.percent / 100);
-                            updateUploadProgress(percent, processed, totalSize, '正在打包: ' + percent + '%');
-                        }
-                    );
-
-                    formData = new FormData();
-                    formData.append('folder', zipBlob, 'folder.zip');
-                    formData.append('path', currentPath);
-                } catch (err) {
-                    hideUploadProgressModal();
-                    showToast('打包失败: ' + err.message, 'error');
-                    return;
-                }
-            } else {
-                // File upload: send files directly
-                const totalSize = Array.from(files).reduce((sum, f) => sum + f.size, 0);
-                showUploadProgressModal(files.length, totalSize);
-
-                formData = new FormData();
-                for (let i = 0; i < files.length; i++) {
-                    formData.append('files[]', files[i]);
-                }
-                formData.append('path', currentPath);
+            const formData = new FormData();
+            for (let i = 0; i < files.length; i++) {
+                formData.append('files[]', files[i]);
             }
-
-            const endpoint = isFolder ? '/api/file-manager/api/upload-folder' : '/api/file-manager/api/upload';
+            formData.append('path', currentPath);
 
             try {
-                const uploaded = await uploadWithProgress(endpoint, formData);
+                const uploaded = await uploadWithProgress('/api/file-manager/api/upload', formData);
                 hideUploadProgressModal();
                 showToast(`上传成功！已上传 ${uploaded.length} 个文件`, 'success');
                 loadFiles(currentPath);
@@ -446,15 +402,11 @@
         }
 
         // Download
-        function downloadFile(path) {
+function downloadFile(path) {
             window.location.href = `/api/file-manager/api/download?path=${encodeURIComponent(path)}`;
         }
 
-        function downloadFolder(path) {
-            window.location.href = `/api/file-manager/api/download-folder?path=${encodeURIComponent(path)}`;
-        }
-
-        // Create Folder
+        // Delete
         function showCreateFolderModal() {
             document.getElementById('newFolderName').value = '';
             document.getElementById('createFolderModal').classList.add('active');
@@ -465,23 +417,35 @@
             const name = document.getElementById('newFolderName').value.trim();
             if (!name) return;
 
+            const btn = document.querySelector('#createFolderModal .btn-primary');
+            btn.disabled = true;
+            btn.textContent = '创建中...';
+
             try {
                 const formData = new FormData();
-                formData.append('path', currentPath);
+                formData.append('path', currentPath || '');
                 formData.append('name', name);
 
-                const resp = await fetch('/api/file-manager/api/create-folder', { method: 'POST', body: formData });
+                const resp = await fetch('/api/file-manager/api/create-folder', {
+                    method: 'POST',
+                    body: formData,
+                    headers: { 'Accept': 'application/json' }
+                });
                 const data = await resp.json();
 
                 if (data.success) {
                     showToast('文件夹创建成功', 'success');
                     closeModal('createFolderModal');
+                    document.getElementById('newFolderName').value = '';
                     loadFiles(currentPath);
                 } else {
                     showToast(data.error || '创建失败', 'error');
                 }
             } catch (err) {
                 showToast('创建失败: ' + err.message, 'error');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '创建';
             }
         }
 
